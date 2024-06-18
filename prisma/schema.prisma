@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:admin@localhost:5432/acsdb"
+}
+
+// Model "User" represents user data with an "id", "name", and relationships to "buildings" and "accessLogs."
+model User {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  accessLogs AccessLog[]
+  buildings  UserInBuilding[]
+
+  createdAt DateTime @default(now())
+}
+
+// Model "Building" represents building data with an "id," "name," and relationships to "users."
+model Building {
+  id   Int    @id @default(autoincrement())
+  name String
+
+  accessLogs AccessLog[]
+  users      UserInBuilding[]
+
+  createdAt DateTime @default(now())
+}
+
+model UserInBuilding {
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+  userId     Int
+  buildingId Int
+
+  @@id([userId, buildingId])
+}
+
+// Model "AccessLog" represents access log data with an "id," "accessStatus," "accessType," and relationships to "user" and "building."
+model AccessLog {
+  id           Int          @id @default(autoincrement())
+  accessStatus AccessStatus @default(GRANTED)
+  accessTime   DateTime     @default(now())
+
+  userId     Int
+  buildingId Int
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  building   Building @relation(fields: [buildingId], references: [id], onDelete: Cascade)
+}
+
+// Enum for access types
+enum AccessType {
+  IN
+  OUT
+}
+
+// Enum for access status
+enum AccessStatus {
+  GRANTED
+  DENIED
+}
